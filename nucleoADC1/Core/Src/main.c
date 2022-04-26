@@ -126,7 +126,7 @@ int main(void)
 	  adc_value = HAL_ADC_GetValue(&hadc2);
 //	  HAL_ADC_Stop(&hadc2);
 	  printf("%d\n\r",adc_value);
-	  HAL_Delay(1000);
+	  HAL_Delay(10);
 
   }
   /* USER CODE END 3 */
