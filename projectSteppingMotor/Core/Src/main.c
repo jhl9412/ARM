@@ -48,10 +48,14 @@ TIM_HandleTypeDef htim3;
 UART_HandleTypeDef huart2;
 
 /* USER CODE BEGIN PV */
-int adc_valueX;
-int adc_valueY;
+int joystick1_X;
+int joystick1_Y;
+int joystick2_X;
+int joystick2_Y;
 int delay_time = 0;
-int survoIdx=0;
+int survo1Idx=0;
+int survo2Idx=0;
+int survo3Idx=0;
 ADC_ChannelConfTypeDef Adc_sConfig;
 /* USER CODE END PV */
 
@@ -127,7 +131,8 @@ int main(void)
 	HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_3);
 	HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_4);
 	HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_1);
-
+	HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_2);
+	HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_3);
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -139,17 +144,25 @@ int main(void)
     /* USER CODE BEGIN 3 */
 	  HAL_ADC_Start(&hadc2);
 	  HAL_ADC_PollForConversion(&hadc2, HAL_MAX_DELAY);
-	  adc_valueX = HAL_ADC_GetValue(&hadc2);
+	  joystick1_X = HAL_ADC_GetValue(&hadc2);
 
 	  HAL_ADC_Start(&hadc2);
 	  HAL_ADC_PollForConversion(&hadc2, HAL_MAX_DELAY);
-	  adc_valueY = HAL_ADC_GetValue(&hadc2);
+	  joystick1_Y = HAL_ADC_GetValue(&hadc2);
 
-	  if(adc_valueX<1800)	adc_valueX = 0; // ( -x )
-	  else if(adc_valueX >=1800&&adc_valueX<2900)	adc_valueX = 1;// 0
-	  else if(adc_valueX>=2900)	adc_valueX = 2; //( +x )
+	  HAL_ADC_Start(&hadc2);
+	  HAL_ADC_PollForConversion(&hadc2, HAL_MAX_DELAY);
+	  joystick2_X = HAL_ADC_GetValue(&hadc2);
 
-	  if(adc_valueX == 0)
+	  HAL_ADC_Start(&hadc2);
+	  HAL_ADC_PollForConversion(&hadc2, HAL_MAX_DELAY);
+	  joystick2_Y = HAL_ADC_GetValue(&hadc2);
+
+	  if(joystick1_X<1800)	joystick1_X = 0; // ( -x )
+	  else if(joystick1_X >=1800&&joystick1_X<2900)	joystick1_X = 1;// 0
+	  else if(joystick1_X>=2900)	joystick1_X = 2; //( +x )
+
+	  if(joystick1_X == 0)
 	  {
 		  TIM1->CCER = 784; // counterclockwise
 		  TIM1->CCR2 = 5000;
@@ -157,15 +170,15 @@ int main(void)
 		  TIM2->CCR3 = 5000;
 		  TIM2->CCR4 = 5000;
 	  }
-	  else if(adc_valueX == 1)
+	  else if(joystick1_X == 1)
 	  {
-
+		  TIM1->CCER = 0;
 		  TIM1->CCR2 = 0;
 		  TIM1->CCR3 = 0;
 		  TIM2->CCR3 = 0;
 		  TIM2->CCR4 = 0;
 	  }
-	  else if(adc_valueX == 2)
+	  else if(joystick1_X == 2)
 	  {
 		  TIM1->CCER = 306; // clockwise
 		  TIM1->CCR2 = 5000;
@@ -174,25 +187,61 @@ int main(void)
 		  TIM2->CCR4 = 5000;
 	  }
 
-	  if(adc_valueY<600) adc_valueY=1;
-	  else if(adc_valueY>3000) adc_valueY = 2;
-	  else adc_valueY = 0;
+	  if(joystick1_Y<600) joystick1_Y=1;
+	  else if(joystick1_Y>3000) joystick1_Y = 2;
+	  else joystick1_Y = 0;
 
-	  if(adc_valueY==1)
+	  if(joystick2_X<600) joystick2_X=1;
+	  else if(joystick2_X>3000) joystick2_X = 2;
+	  else joystick2_X = 0;
+
+	  if(joystick2_Y<600) joystick2_Y=1;
+	  else if(joystick2_Y>3000) joystick2_Y = 2;
+	  else joystick2_Y = 0;
+
+	  if(joystick1_Y==1)
 	  {
 
-		  TIM3->CCR1 = 999+survoIdx*10;
-		  survoIdx--;
-		  if (survoIdx<0) survoIdx = 0;
+		  TIM3->CCR1 = 999+survo1Idx*20;
+		  survo1Idx--;
+		  if (survo1Idx<0) survo1Idx = 0;
 	  }
-	  else if(adc_valueY == 2)
+	  else if(joystick1_Y == 2)
 	  {
-		  TIM3->CCR1 = 999+survoIdx*10;
-		  survoIdx++;
-		  if(survoIdx>400) survoIdx = 400;
+		  TIM3->CCR1 = 999+survo1Idx*20;
+		  survo1Idx++;
+		  if(survo1Idx>200) survo1Idx = 200;
 	  }
-	  printf("adc_valueX:%d adc_valueY: %d survoIdx : %d\n\r",adc_valueX,adc_valueY,survoIdx);
-	  HAL_Delay(10);
+	  if(joystick2_X==1)
+	  {
+
+		  TIM3->CCR2 = 999+survo2Idx*20;
+		  survo2Idx--;
+		  if (survo2Idx<0) survo2Idx = 0;
+	  }
+	  else if(joystick2_X == 2)
+	  {
+		  TIM3->CCR2 = 999+survo2Idx*20;
+		  survo2Idx++;
+		  if(survo2Idx>200) survo2Idx = 200;
+	  }
+	  if(joystick2_Y==1)
+	  {
+
+		  TIM3->CCR3 = 999+survo3Idx*20;
+		  survo3Idx--;
+		  if (survo3Idx<0) survo3Idx = 0;
+	  }
+	  else if(joystick2_Y == 2)
+	  {
+		  TIM3->CCR3 = 999+survo3Idx*20;
+		  survo3Idx++;
+		  if(survo3Idx>200) survo3Idx = 200;
+	  }
+	  printf("joystick1_X:%d joystick1_Y: %d joystick2_X:%d joystick2_Y: %d\n\r",joystick1_X,joystick1_Y,joystick2_X,joystick2_Y);
+	  printf("survo1Idx:%d survo2Idx:%u survo3Idx:%u  \n\r",survo1Idx,TIM3->CCR2,TIM3->CCR3);
+
+	  HAL_Delay(20);
   }
   /* USER CODE END 3 */
 }
@@ -270,7 +319,7 @@ static void MX_ADC2_Init(void)
   hadc2.Init.NbrOfDiscConversion = 1;
   hadc2.Init.ExternalTrigConv = ADC_SOFTWARE_START;
   hadc2.Init.DataAlign = ADC_DATAALIGN_RIGHT;
-  hadc2.Init.NbrOfConversion = 2;
+  hadc2.Init.NbrOfConversion = 4;
   if (HAL_ADC_Init(&hadc2) != HAL_OK)
   {
     Error_Handler();
@@ -290,6 +339,24 @@ static void MX_ADC2_Init(void)
   */
   sConfig.Channel = ADC_CHANNEL_7;
   sConfig.Rank = ADC_REGULAR_RANK_2;
+  if (HAL_ADC_ConfigChannel(&hadc2, &sConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+
+  /** Configure Regular Channel
+  */
+  sConfig.Channel = ADC_CHANNEL_8;
+  sConfig.Rank = ADC_REGULAR_RANK_3;
+  if (HAL_ADC_ConfigChannel(&hadc2, &sConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+
+  /** Configure Regular Channel
+  */
+  sConfig.Channel = ADC_CHANNEL_9;
+  sConfig.Rank = ADC_REGULAR_RANK_4;
   if (HAL_ADC_ConfigChannel(&hadc2, &sConfig) != HAL_OK)
   {
     Error_Handler();
@@ -510,6 +577,14 @@ static void MX_TIM3_Init(void)
   sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
   sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
   if (HAL_TIM_PWM_ConfigChannel(&htim3, &sConfigOC, TIM_CHANNEL_1) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  if (HAL_TIM_PWM_ConfigChannel(&htim3, &sConfigOC, TIM_CHANNEL_2) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  if (HAL_TIM_PWM_ConfigChannel(&htim3, &sConfigOC, TIM_CHANNEL_3) != HAL_OK)
   {
     Error_Handler();
   }
